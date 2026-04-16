@@ -343,6 +343,175 @@
 </div>
 
 <script>
+  // ========== GAME DATA ==========
+  const GODS = [
+    {
+      name: 'Zeus',
+      weapon: 'Thunderbolt',
+      color: '#f0d060',
+      accent: '#ffe090',
+      hp: 120,
+      damage: 30,
+    },
+    {
+      name: 'Poseidon',
+      weapon: 'Trident',
+      color: '#4090d0',
+      accent: '#60c0f0',
+      hp: 110,
+      damage: 28,
+    },
+    {
+      name: 'Athena',
+      weapon: 'Spear & Shield',
+      color: '#a0a0b0',
+      accent: '#d0d0e0',
+      hp: 130,
+      damage: 25,
+    },
+    {
+      name: 'Ares',
+      weapon: 'Sword',
+      color: '#d04040',
+      accent: '#f06060',
+      hp: 100,
+      damage: 35,
+    },
+  ];
+
+  let selectedGod = null;
+
+  // ========== PIXEL ART DRAWING ==========
+  // Each sprite is an array of rows; each character maps to a color.
+  // '.' = transparent, letters map to palette entries per god/monster.
+
+  function drawPixelGrid(ctx, grid, palette, scale) {
+    const rows = grid.length;
+    const cols = grid[0].length;
+    ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+    const offsetX = Math.floor((ctx.canvas.width - cols * scale) / 2);
+    const offsetY = Math.floor((ctx.canvas.height - rows * scale) / 2);
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        const ch = grid[r][c];
+        if (ch !== '.' && palette[ch]) {
+          ctx.fillStyle = palette[ch];
+          ctx.fillRect(offsetX + c * scale, offsetY + r * scale, scale, scale);
+        }
+      }
+    }
+  }
+
+  const GOD_SPRITES = {
+    Zeus: {
+      grid: [
+        '....YYYY....',
+        '...YYYYYY...',
+        '...YEEEYY...',
+        '...EEEEEE...',
+        '....SMMS....',
+        '....MMMM....',
+        '..WWGGGGWW..',
+        '..WGGGGGW...',
+        '..WGGGGGW...',
+        '...GGGGGG...',
+        '....GGGG....',
+        '....GG.GG...',
+        '...GG...GG..',
+        '...BB...BB..',
+      ],
+      palette: {Y:'#f0d060',E:'#f5e0a0',S:'#222',M:'#d4a070',G:'#e8e8f0',W:'#c9a84c',B:'#8B7355'},
+    },
+    Poseidon: {
+      grid: [
+        '....BBBB....',
+        '...BBBBBB...',
+        '...BEEEBB...',
+        '...EEEEEE...',
+        '....SMMS....',
+        '....MMMM....',
+        '..CCGGGGCC..',
+        '..CGGGGGC...',
+        '..CGGGGGC...',
+        '...GGGGGG...',
+        '....GGGG....',
+        '....GG.GG...',
+        '...GG...GG..',
+        '...BB...BB..',
+      ],
+      palette: {B:'#4090d0',E:'#f5e0a0',S:'#222',M:'#c8a070',G:'#3070a0',C:'#60c0f0',BB:'#2a5080'},
+    },
+    Athena: {
+      grid: [
+        '....HHHH....',
+        '...HHHHHH...',
+        '..HHHHHHH...',
+        '...GEEEG....',
+        '...EEEEEE...',
+        '....SMMS....',
+        '....MMMM....',
+        '..AAWWWWAA..',
+        '..AWWWWWA...',
+        '..AWWWWWA...',
+        '...WWWWWW...',
+        '....WW.WW...',
+        '...WW...WW..',
+        '...BB...BB..',
+      ],
+      palette: {H:'#c9a84c',G:'#a0a0b0',E:'#f5e0a0',S:'#222',M:'#d4a070',A:'#a0a0b0',W:'#e8e8f0',B:'#8B7355'},
+    },
+    Ares: {
+      grid: [
+        '....RRRR....',
+        '...RRRRRR...',
+        '...REEERR...',
+        '...EEEEEE...',
+        '....SMMS....',
+        '....MMMM....',
+        '..RRGGGGKK..',
+        '..RGGGGGK...',
+        '..RGGGGGK...',
+        '...GGGGGG...',
+        '....GGGG....',
+        '....GG.GG...',
+        '...GG...GG..',
+        '...BB...BB..',
+      ],
+      palette: {R:'#d04040',E:'#f5e0a0',S:'#222',M:'#d4a070',G:'#8B0000',K:'#333',B:'#8B7355'},
+    },
+  };
+
+  function drawGodSprite(canvas, godName) {
+    const sprite = GOD_SPRITES[godName];
+    if (!sprite) return;
+    const ctx = canvas.getContext('2d');
+    drawPixelGrid(ctx, sprite.grid, sprite.palette, 8);
+  }
+
+  // ========== GOD SELECTION ==========
+  function buildGodSelection() {
+    const grid = document.getElementById('god-grid');
+    grid.innerHTML = '';
+    GODS.forEach((god, i) => {
+      const card = document.createElement('div');
+      card.className = 'god-card';
+      card.innerHTML = `
+        <canvas width="96" height="112"></canvas>
+        <div class="god-name">${god.name}</div>
+        <div class="god-weapon">${god.weapon}</div>
+      `;
+      const canvas = card.querySelector('canvas');
+      drawGodSprite(canvas, god.name);
+      card.addEventListener('click', () => selectGod(i));
+      grid.appendChild(card);
+    });
+  }
+
+  function selectGod(index) {
+    selectedGod = GODS[index];
+    showScreen('battle-screen');
+  }
+
   // ========== SCREEN MANAGEMENT ==========
   function showScreen(id) {
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
@@ -351,6 +520,7 @@
 
   // ========== NAVIGATION ==========
   document.getElementById('start-btn').addEventListener('click', () => {
+    buildGodSelection();
     showScreen('select-screen');
   });
 
