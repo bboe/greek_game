@@ -307,6 +307,18 @@
     font-size: 24px;
   }
 
+  .confetti {
+    position: absolute;
+    font-size: 28px;
+    pointer-events: none;
+    animation: confetti-fall 1.5s ease-out forwards;
+  }
+
+  @keyframes confetti-fall {
+    0% { opacity: 1; transform: translateY(0) rotate(0deg) scale(1); }
+    100% { opacity: 0; transform: translateY(120px) rotate(360deg) scale(0.5); }
+  }
+
   .heal-heart {
     position: absolute;
     font-size: 28px;
@@ -1077,19 +1089,60 @@
     }
   }
 
+  function showConfetti() {
+    const game = document.getElementById('game');
+    const emojis = ['\uD83C\uDF89', '\uD83C\uDF8A', '\u2728', '\uD83C\uDF1F', '\uD83C\uDFC6', '\uD83E\uDD73'];
+    for (let i = 0; i < 30; i++) {
+      setTimeout(() => {
+        const conf = document.createElement('div');
+        conf.className = 'confetti';
+        conf.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+        conf.style.left = (Math.random() * 760) + 'px';
+        conf.style.top = (Math.random() * 100) + 'px';
+        game.appendChild(conf);
+        setTimeout(() => conf.remove(), 1500);
+      }, i * 60);
+    }
+  }
+
+  function sfxCheers() {
+    // Ascending fanfare with harmonics
+    [523, 659, 784, 1047].forEach((f, i) => {
+      setTimeout(() => {
+        playTone(f, 0.3, 'square', 0.12);
+        playTone(f * 1.5, 0.3, 'sine', 0.06);
+      }, i * 150);
+    });
+    // Celebratory trill
+    setTimeout(() => {
+      [1047, 1175, 1319, 1397, 1568].forEach((f, i) => {
+        setTimeout(() => playTone(f, 0.12, 'square', 0.1), i * 70);
+      });
+    }, 600);
+  }
+
   function monsterDefeated() {
     const monster = MONSTERS[currentMonsterIndex];
-    const healAmount = 30 + Math.floor(Math.random() * 21); // 30-50 HP
-    playerHp = Math.min(playerHp + healAmount, selectedGod.hp);
-    document.getElementById('battle-message').textContent =
-      `${monster.name} has been defeated! You recover ${healAmount} HP!`;
-    sfxMonsterDefeated();
-    showHealHearts('player-canvas', 5);
+    const isLastMonster = currentMonsterIndex === MONSTERS.length - 1;
+
+    if (isLastMonster) {
+      document.getElementById('battle-message').textContent =
+        `${monster.name} has been defeated! You saved Ancient Greece!`;
+      sfxCheers();
+      showConfetti();
+    } else {
+      const healAmount = 30 + Math.floor(Math.random() * 21); // 30-50 HP
+      playerHp = Math.min(playerHp + healAmount, selectedGod.hp);
+      document.getElementById('battle-message').textContent =
+        `${monster.name} has been defeated! You recover ${healAmount} HP!`;
+      sfxMonsterDefeated();
+      showHealHearts('player-canvas', 5);
+    }
     updateBattleUI();
 
     currentMonsterIndex++;
     if (currentMonsterIndex >= MONSTERS.length) {
-      setTimeout(() => endGame(true), 1500);
+      setTimeout(() => endGame(true), 2000);
     } else {
       setTimeout(() => startBattle(), 1500);
     }
