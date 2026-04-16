@@ -527,8 +527,113 @@
     },
   };
 
+  const MONSTER_SPRITES = {
+    Minotaur: {
+      grid: [
+        '.HH......HH.',
+        '.HHHHHHHHH..',
+        '..HBBBBBBH..',
+        '..BBEBBEBB..',
+        '..BBBBBBBB..',
+        '...BNNNNB...',
+        '...BNMMBN...',
+        '....BBBB....',
+        '..RRRRRRR...',
+        '..RRRRRRRR..',
+        '.RRRRRRRRR..',
+        '...RRRRRR...',
+        '...RR..RR...',
+        '..HH...HH..',
+      ],
+      palette: {H:'#6B4226',B:'#8B6914',E:'#ff2020',N:'#5a4010',M:'#3a2808',R:'#a07040',},
+    },
+    Medusa: {
+      grid: [
+        '.GGG..GGG...',
+        'GGGGGGGGG...',
+        'G.GGGGG.GG..',
+        '..GEEEGGG...',
+        '..GEEEEE....',
+        '...EYYYE....',
+        '...EMMME....',
+        '....EEEE....',
+        '..GGDDDDGG..',
+        '..GDDDDDG...',
+        '..GDDDDDG...',
+        '...DDDDDD...',
+        '..SSSSSSSS..',
+        '.SS..SS..SS.',
+      ],
+      palette: {G:'#4a8040',E:'#90b070',Y:'#ffff00',M:'#3a2020',D:'#5a9050',S:'#3a6030'},
+    },
+    Hydra: {
+      grid: [
+        'HH..HH..HH..',
+        '.HH.HH.HH...',
+        '..HHHHHH.....',
+        '..EEEEEE.....',
+        '..REEREER....',
+        '..EEEEEE.....',
+        '...GGGGGG....',
+        '..GGGGGGGG...',
+        '..GGGGGGGG...',
+        '..GGGGGGGG...',
+        '...GGGGGGG...',
+        '...GG.GGG....',
+        '..GG...GG....',
+        '.GG.....GG...',
+      ],
+      palette: {H:'#306030',E:'#60a060',R:'#ff3030',G:'#408040'},
+    },
+    Cyclops: {
+      grid: [
+        '....BBBB....',
+        '...BBBBBB...',
+        '..BBBBBBBB..',
+        '..BBEEEEBB..',
+        '..BBRRRRBB..',
+        '..BBEEEEBB..',
+        '...BBMMBB...',
+        '...BBBBBB...',
+        '..TTTTTTTT..',
+        '..TTTTTTTT..',
+        '..TTTTTTTT..',
+        '...TTTTTT...',
+        '...TT..TT...',
+        '..BB...BBB..',
+      ],
+      palette: {B:'#c0a080',E:'#f0f0f0',R:'#ff0000',M:'#8a6040',T:'#8B7355'},
+    },
+    Cerberus: {
+      grid: [
+        'DD.DD.DD....',
+        'DDDDDDDDD...',
+        'DEEDEDEDD....',
+        'DDDDDDDDD...',
+        '.DMMMDMMD...',
+        '..DDDDDDD...',
+        '...KKKKKK...',
+        '..KKKKKKKK..',
+        '..KKKKKKKK..',
+        '..KK.KK.KK..',
+        '..KK.KK.KK..',
+        '.KK..KK..KK.',
+        '......KK.....',
+        '.....KKKK....',
+      ],
+      palette: {D:'#3a3a3a',E:'#ff3030',M:'#f0f0f0',K:'#2a2a2a'},
+    },
+  };
+
   function drawGodSprite(canvas, godName) {
     const sprite = GOD_SPRITES[godName];
+    if (!sprite) return;
+    const ctx = canvas.getContext('2d');
+    drawPixelGrid(ctx, sprite.grid, sprite.palette, 8);
+  }
+
+  function drawMonsterSprite(canvas, monsterName) {
+    const sprite = MONSTER_SPRITES[monsterName];
     if (!sprite) return;
     const ctx = canvas.getContext('2d');
     drawPixelGrid(ctx, sprite.grid, sprite.palette, 8);
@@ -592,6 +697,7 @@
 
     // Draw sprites
     drawGodSprite(document.getElementById('player-canvas'), selectedGod.name);
+    drawMonsterSprite(document.getElementById('monster-canvas'), monster.name);
   }
 
   function showNextQuestion() {
