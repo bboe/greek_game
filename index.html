@@ -307,6 +307,55 @@
     font-size: 24px;
   }
 
+  /* ---- Screen Transitions ---- */
+  @keyframes fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  .screen.active {
+    animation: fade-in 0.4s ease;
+  }
+
+  /* ---- Monster Progress Bar ---- */
+  .progress-bar {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    margin-bottom: 8px;
+  }
+
+  .progress-pip {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #333;
+    border: 2px solid #555;
+    transition: background 0.3s, border-color 0.3s;
+  }
+
+  .progress-pip.defeated {
+    background: #4caf50;
+    border-color: #6dd670;
+  }
+
+  .progress-pip.current {
+    background: #c9a84c;
+    border-color: #dfc06a;
+  }
+
+  /* ---- VS Text ---- */
+  .vs-text {
+    font-size: 32px;
+    color: #c9a84c;
+    font-weight: bold;
+    text-shadow: 2px 2px 6px rgba(0,0,0,0.6);
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+  }
+
   /* ---- End Screen ---- */
   #end-screen {
     background: linear-gradient(180deg, #0f3460 0%, #16213e 100%);
@@ -365,8 +414,11 @@
       </div>
     </div>
 
+    <div class="progress-bar" id="progress-bar"></div>
+
     <div class="battle-arena">
       <canvas id="player-canvas" width="128" height="128"></canvas>
+      <span class="vs-text">VS</span>
       <canvas id="monster-canvas" width="128" height="128"></canvas>
     </div>
 
@@ -801,6 +853,18 @@
     // Draw sprites
     drawGodSprite(document.getElementById('player-canvas'), selectedGod.name);
     drawMonsterSprite(document.getElementById('monster-canvas'), monster.name);
+
+    // Update progress pips
+    const bar = document.getElementById('progress-bar');
+    bar.innerHTML = '';
+    MONSTERS.forEach((m, i) => {
+      const pip = document.createElement('div');
+      pip.className = 'progress-pip';
+      pip.title = m.name;
+      if (i < currentMonsterIndex) pip.classList.add('defeated');
+      if (i === currentMonsterIndex) pip.classList.add('current');
+      bar.appendChild(pip);
+    });
   }
 
   function showNextQuestion() {
