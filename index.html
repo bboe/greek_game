@@ -390,6 +390,51 @@
 </div>
 
 <script>
+  // ========== IMAGE OVERRIDES ==========
+  // To use custom images instead of pixel art, place images in an "images/" folder
+  // and set the paths below. Supported formats: .png, .jpg, .gif, .webp
+  // Set a value to null to use the default pixel art.
+  const IMAGE_OVERRIDES = {
+    gods: {
+      Zeus: null,       // e.g., 'images/zeus.png'
+      Poseidon: null,   // e.g., 'images/poseidon.png'
+      Athena: null,     // e.g., 'images/athena.png'
+      Ares: null,       // e.g., 'images/ares.png'
+    },
+    monsters: {
+      Minotaur: null,   // e.g., 'images/minotaur.png'
+      Medusa: null,     // e.g., 'images/medusa.png'
+      Hydra: null,      // e.g., 'images/hydra.png'
+      Cyclops: null,    // e.g., 'images/cyclops.png'
+      Cerberus: null,   // e.g., 'images/cerberus.png'
+    },
+  };
+
+  // Cache loaded images
+  const imageCache = {};
+
+  function loadImage(src) {
+    return new Promise((resolve, reject) => {
+      if (imageCache[src]) { resolve(imageCache[src]); return; }
+      const img = new Image();
+      img.onload = () => { imageCache[src] = img; resolve(img); };
+      img.onerror = () => resolve(null); // fall back to pixel art on error
+      img.src = src;
+    });
+  }
+
+  function drawImageOnCanvas(canvas, img) {
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    // Scale image to fit canvas while maintaining aspect ratio
+    const scale = Math.min(canvas.width / img.width, canvas.height / img.height);
+    const w = img.width * scale;
+    const h = img.height * scale;
+    const x = (canvas.width - w) / 2;
+    const y = (canvas.height - h) / 2;
+    ctx.drawImage(img, x, y, w, h);
+  }
+
   // ========== GAME DATA ==========
   const GODS = [
     {
@@ -672,14 +717,24 @@
     },
   };
 
-  function drawGodSprite(canvas, godName) {
+  async function drawGodSprite(canvas, godName) {
+    const override = IMAGE_OVERRIDES.gods[godName];
+    if (override) {
+      const img = await loadImage(override);
+      if (img) { drawImageOnCanvas(canvas, img); return; }
+    }
     const sprite = GOD_SPRITES[godName];
     if (!sprite) return;
     const ctx = canvas.getContext('2d');
     drawPixelGrid(ctx, sprite.grid, sprite.palette, 8);
   }
 
-  function drawMonsterSprite(canvas, monsterName) {
+  async function drawMonsterSprite(canvas, monsterName) {
+    const override = IMAGE_OVERRIDES.monsters[monsterName];
+    if (override) {
+      const img = await loadImage(override);
+      if (img) { drawImageOnCanvas(canvas, img); return; }
+    }
     const sprite = MONSTER_SPRITES[monsterName];
     if (!sprite) return;
     const ctx = canvas.getContext('2d');
