@@ -1131,7 +1131,7 @@
       sfxCheers();
       showConfetti();
     } else {
-      const healAmount = 30 + Math.floor(Math.random() * 21); // 30-50 HP
+      const healAmount = 20 + Math.floor(Math.random() * 16); // 20-35 HP
       playerHp = Math.min(playerHp + healAmount, selectedGod.hp);
       document.getElementById('battle-message').textContent =
         `${monster.name} has been defeated! You recover ${healAmount} HP!`;
