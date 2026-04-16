@@ -762,6 +762,7 @@
 
   function selectGod(index) {
     selectedGod = GODS[index];
+    sfxSelect();
     startGame();
   }
 
@@ -820,6 +821,69 @@
     });
   }
 
+  // ========== SOUND EFFECTS ==========
+  let audioCtx = null;
+
+  function getAudioCtx() {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    return audioCtx;
+  }
+
+  function playTone(freq, duration, type = 'square', volume = 0.15) {
+    try {
+      const ctx = getAudioCtx();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = type;
+      osc.frequency.value = freq;
+      gain.gain.value = volume;
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start();
+      osc.stop(ctx.currentTime + duration);
+    } catch(e) { /* audio not supported */ }
+  }
+
+  function sfxCorrect() {
+    playTone(523, 0.1, 'square');
+    setTimeout(() => playTone(659, 0.1, 'square'), 100);
+    setTimeout(() => playTone(784, 0.2, 'square'), 200);
+  }
+
+  function sfxWrong() {
+    playTone(200, 0.15, 'sawtooth', 0.1);
+    setTimeout(() => playTone(150, 0.3, 'sawtooth', 0.1), 150);
+  }
+
+  function sfxHit() {
+    playTone(100, 0.1, 'square', 0.2);
+    setTimeout(() => playTone(80, 0.15, 'square', 0.15), 50);
+  }
+
+  function sfxVictory() {
+    [523, 587, 659, 784, 880, 1047].forEach((f, i) => {
+      setTimeout(() => playTone(f, 0.2, 'square', 0.12), i * 120);
+    });
+  }
+
+  function sfxDefeat() {
+    [400, 350, 300, 250, 200].forEach((f, i) => {
+      setTimeout(() => playTone(f, 0.25, 'sawtooth', 0.1), i * 200);
+    });
+  }
+
+  function sfxSelect() {
+    playTone(440, 0.08, 'square', 0.1);
+    setTimeout(() => playTone(660, 0.12, 'square', 0.1), 80);
+  }
+
+  function sfxMonsterDefeated() {
+    playTone(300, 0.1, 'square');
+    setTimeout(() => playTone(400, 0.1, 'square'), 100);
+    setTimeout(() => playTone(500, 0.15, 'square'), 200);
+  }
+
   // ========== ANIMATION HELPERS ==========
   function animateShake(element) {
     element.classList.remove('shake');
@@ -872,6 +936,7 @@
       animateShake(document.getElementById('monster-canvas'));
       animateFlash(document.getElementById('monster-canvas'));
       showDamageNumber('monster-canvas', dmg, true);
+      sfxCorrect();
     } else {
       const dmg = Math.floor(selectedGod.damage * 0.3) + Math.floor(Math.random() * 5);
       monsterHp -= dmg;
@@ -879,6 +944,7 @@
         `Wrong! ${selectedGod.name} attacks weakly for only ${dmg} damage...`;
       animateShake(document.getElementById('monster-canvas'));
       showDamageNumber('monster-canvas', dmg, false);
+      sfxWrong();
     }
 
     updateBattleUI();
@@ -900,6 +966,7 @@
       `${monster.name} attacks for ${dmg} damage!`;
     animateShake(document.getElementById('player-canvas'));
     showDamageNumber('player-canvas', dmg, false);
+    sfxHit();
     updateBattleUI();
 
     setTimeout(() => {
@@ -915,6 +982,7 @@
     const monster = MONSTERS[currentMonsterIndex];
     document.getElementById('battle-message').textContent =
       `${monster.name} has been defeated!`;
+    sfxMonsterDefeated();
 
     currentMonsterIndex++;
     if (currentMonsterIndex >= MONSTERS.length) {
@@ -933,6 +1001,7 @@
       `Monsters defeated: ${currentMonsterIndex} / ${MONSTERS.length}<br>` +
       `Questions correct: ${questionsCorrect} / ${questionsTotal}<br>` +
       `Accuracy: ${questionsTotal > 0 ? Math.round((questionsCorrect / questionsTotal) * 100) : 0}%`;
+    if (won) sfxVictory(); else sfxDefeat();
     showScreen('end-screen');
   }
 
