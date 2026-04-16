@@ -379,7 +379,53 @@
     },
   ];
 
+  const MONSTERS = [
+    { name: 'Minotaur', hp: 80 },
+    { name: 'Medusa', hp: 90 },
+    { name: 'Hydra', hp: 100 },
+    { name: 'Cyclops', hp: 110 },
+    { name: 'Cerberus', hp: 130 },
+  ];
+
+  const QUESTIONS = [
+    { q: 'Who is the king of the Greek gods?', a: ['Zeus', 'Poseidon', 'Ares', 'Hades'], correct: 0 },
+    { q: 'Who is the Greek god of the sea?', a: ['Ares', 'Poseidon', 'Apollo', 'Hermes'], correct: 1 },
+    { q: 'What weapon did Zeus use?', a: ['Sword', 'Trident', 'Thunderbolt', 'Bow'], correct: 2 },
+    { q: 'What weapon is a three-pronged spear?', a: ['Javelin', 'Trident', 'Lance', 'Halberd'], correct: 1 },
+    { q: 'Who is the goddess of wisdom and war strategy?', a: ['Hera', 'Aphrodite', 'Artemis', 'Athena'], correct: 3 },
+    { q: 'What creature had snakes for hair?', a: ['Hydra', 'Cerberus', 'Medusa', 'Minotaur'], correct: 2 },
+    { q: 'Who is the Greek god of war?', a: ['Ares', 'Hermes', 'Hephaestus', 'Poseidon'], correct: 0 },
+    { q: 'What creature guards the Underworld?', a: ['Minotaur', 'Cyclops', 'Griffin', 'Cerberus'], correct: 3 },
+    { q: 'How many heads does Cerberus have?', a: ['One', 'Two', 'Three', 'Five'], correct: 2 },
+    { q: 'The Minotaur has the head of what animal?', a: ['Lion', 'Bull', 'Horse', 'Eagle'], correct: 1 },
+    { q: 'Where did the Greek gods live?', a: ['Athens', 'Mount Olympus', 'Sparta', 'Troy'], correct: 1 },
+    { q: 'What shield did Athena carry?', a: ['Buckler', 'Tower Shield', 'Aegis', 'Aspis'], correct: 2 },
+    { q: 'Who forged weapons for the gods?', a: ['Ares', 'Hermes', 'Hephaestus', 'Apollo'], correct: 2 },
+    { q: 'A Cyclops has how many eyes?', a: ['One', 'Two', 'Three', 'Four'], correct: 0 },
+    { q: 'What was the Labyrinth built to contain?', a: ['Medusa', 'Hydra', 'Cerberus', 'Minotaur'], correct: 3 },
+    { q: 'Who carried a bow and was goddess of the hunt?', a: ['Athena', 'Artemis', 'Aphrodite', 'Hera'], correct: 1 },
+    { q: 'What happens when you cut off one of the Hydra\'s heads?', a: ['It dies', 'Two grow back', 'Nothing', 'It turns to stone'], correct: 1 },
+    { q: 'What metal were Greek swords usually made of?', a: ['Iron', 'Gold', 'Bronze', 'Silver'], correct: 2 },
+    { q: 'A Greek soldier\'s round shield is called a what?', a: ['Buckler', 'Aspis', 'Pavise', 'Scutum'], correct: 1 },
+    { q: 'Who gave fire to humans and was punished by Zeus?', a: ['Hermes', 'Atlas', 'Prometheus', 'Hephaestus'], correct: 2 },
+  ];
+
   let selectedGod = null;
+  let currentMonsterIndex = 0;
+  let playerHp = 0;
+  let monsterHp = 0;
+  let questionsCorrect = 0;
+  let questionsTotal = 0;
+  let questionQueue = [];
+
+  function shuffleArray(arr) {
+    const a = [...arr];
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  }
 
   // ========== PIXEL ART DRAWING ==========
   // Each sprite is an array of rows; each character maps to a color.
