@@ -555,7 +555,140 @@
 
   function selectGod(index) {
     selectedGod = GODS[index];
+    startGame();
+  }
+
+  // ========== BATTLE MECHANICS ==========
+  function startGame() {
+    currentMonsterIndex = 0;
+    playerHp = selectedGod.hp;
+    questionsCorrect = 0;
+    questionsTotal = 0;
+    questionQueue = shuffleArray(QUESTIONS);
+    startBattle();
+  }
+
+  function startBattle() {
+    const monster = MONSTERS[currentMonsterIndex];
+    monsterHp = monster.hp;
+    updateBattleUI();
+    document.getElementById('battle-message').textContent = `A wild ${monster.name} appears!`;
     showScreen('battle-screen');
+    setTimeout(showNextQuestion, 1000);
+  }
+
+  function updateBattleUI() {
+    const monster = MONSTERS[currentMonsterIndex];
+
+    document.getElementById('player-name').textContent = selectedGod.name;
+    document.getElementById('player-hp-bar').style.width = Math.max(0, (playerHp / selectedGod.hp) * 100) + '%';
+    document.getElementById('player-hp-bar').className = 'hp-bar' + (playerHp / selectedGod.hp < 0.3 ? ' low' : '');
+    document.getElementById('player-hp-text').textContent = `${Math.max(0, playerHp)} / ${selectedGod.hp}`;
+
+    document.getElementById('monster-name').textContent = monster.name;
+    document.getElementById('monster-hp-bar').style.width = Math.max(0, (monsterHp / monster.hp) * 100) + '%';
+    document.getElementById('monster-hp-bar').className = 'hp-bar' + (monsterHp / monster.hp < 0.3 ? ' low' : '');
+    document.getElementById('monster-hp-text').textContent = `${Math.max(0, monsterHp)} / ${monster.hp}`;
+
+    // Draw sprites
+    drawGodSprite(document.getElementById('player-canvas'), selectedGod.name);
+  }
+
+  function showNextQuestion() {
+    if (questionQueue.length === 0) {
+      questionQueue = shuffleArray(QUESTIONS);
+    }
+    const q = questionQueue.pop();
+    document.getElementById('question-text').textContent = q.q;
+
+    const grid = document.getElementById('answers-grid');
+    grid.innerHTML = '';
+    q.a.forEach((answer, i) => {
+      const btn = document.createElement('button');
+      btn.className = 'answer-btn';
+      btn.textContent = answer;
+      btn.addEventListener('click', () => handleAnswer(i, q.correct, btn));
+      grid.appendChild(btn);
+    });
+  }
+
+  function handleAnswer(chosen, correctIndex, btn) {
+    const buttons = document.querySelectorAll('.answer-btn');
+    buttons.forEach(b => b.disabled = true);
+
+    questionsTotal++;
+    const isCorrect = chosen === correctIndex;
+
+    // Highlight correct/wrong
+    buttons[correctIndex].classList.add('correct');
+    if (!isCorrect) {
+      btn.classList.add('wrong');
+    }
+
+    if (isCorrect) {
+      questionsCorrect++;
+      const dmg = selectedGod.damage + Math.floor(Math.random() * 10);
+      monsterHp -= dmg;
+      document.getElementById('battle-message').textContent =
+        `Correct! ${selectedGod.name} attacks with ${selectedGod.weapon} for ${dmg} damage!`;
+    } else {
+      const dmg = Math.floor(selectedGod.damage * 0.3) + Math.floor(Math.random() * 5);
+      monsterHp -= dmg;
+      document.getElementById('battle-message').textContent =
+        `Wrong! ${selectedGod.name} attacks weakly for only ${dmg} damage...`;
+    }
+
+    updateBattleUI();
+
+    setTimeout(() => {
+      if (monsterHp <= 0) {
+        monsterDefeated();
+      } else {
+        monsterAttacks();
+      }
+    }, 1500);
+  }
+
+  function monsterAttacks() {
+    const monster = MONSTERS[currentMonsterIndex];
+    const dmg = 10 + Math.floor(Math.random() * 15);
+    playerHp -= dmg;
+    document.getElementById('battle-message').textContent =
+      `${monster.name} attacks for ${dmg} damage!`;
+    updateBattleUI();
+
+    setTimeout(() => {
+      if (playerHp <= 0) {
+        endGame(false);
+      } else {
+        showNextQuestion();
+      }
+    }, 1200);
+  }
+
+  function monsterDefeated() {
+    const monster = MONSTERS[currentMonsterIndex];
+    document.getElementById('battle-message').textContent =
+      `${monster.name} has been defeated!`;
+
+    currentMonsterIndex++;
+    if (currentMonsterIndex >= MONSTERS.length) {
+      setTimeout(() => endGame(true), 1500);
+    } else {
+      setTimeout(() => startBattle(), 1500);
+    }
+  }
+
+  function endGame(won) {
+    document.getElementById('end-title').textContent = won ? 'Victory!' : 'Defeat!';
+    document.getElementById('end-message').textContent = won
+      ? 'You saved Ancient Greece!'
+      : `You were defeated by the ${MONSTERS[currentMonsterIndex].name}...`;
+    document.getElementById('end-stats').innerHTML =
+      `Monsters defeated: ${currentMonsterIndex} / ${MONSTERS.length}<br>` +
+      `Questions correct: ${questionsCorrect} / ${questionsTotal}<br>` +
+      `Accuracy: ${questionsTotal > 0 ? Math.round((questionsCorrect / questionsTotal) * 100) : 0}%`;
+    showScreen('end-screen');
   }
 
   // ========== SCREEN MANAGEMENT ==========
