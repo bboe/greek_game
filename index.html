@@ -95,11 +95,77 @@
     margin-bottom: 32px;
   }
 
+  .select-layout {
+    display: flex;
+    gap: 24px;
+    padding: 0 24px;
+    align-items: flex-start;
+    width: 100%;
+  }
+
   .god-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 20px;
-    padding: 0 60px;
+    flex: 1;
+  }
+
+  .god-info-panel {
+    width: 200px;
+    background: #1a1a3e;
+    border: 2px solid #3a3a5e;
+    border-radius: 8px;
+    padding: 20px;
+    text-align: center;
+    min-height: 220px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  .god-info-panel .info-name {
+    font-size: 22px;
+    color: #c9a84c;
+    margin-bottom: 8px;
+  }
+
+  .god-info-panel .info-weapon {
+    font-size: 14px;
+    color: #8a9ab5;
+    margin-bottom: 16px;
+  }
+
+  .god-info-panel .info-hint {
+    font-size: 14px;
+    color: #555;
+  }
+
+  .god-info-panel .stat-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+    font-size: 14px;
+    color: #8a9ab5;
+  }
+
+  .god-info-panel .stat-label {
+    width: 36px;
+    text-align: right;
+  }
+
+  .god-info-panel .stat-bar-bg {
+    flex: 1;
+    height: 10px;
+    background: #333;
+    border-radius: 5px;
+    overflow: hidden;
+  }
+
+  .god-info-panel .stat-bar-fill {
+    height: 100%;
+    border-radius: 5px;
+    transition: width 0.3s ease;
   }
 
   .god-card {
@@ -133,6 +199,7 @@
     font-size: 14px;
     color: #8a9ab5;
   }
+
 
   /* ---- Battle Screen ---- */
   #battle-screen {
@@ -420,8 +487,13 @@
   <!-- God Selection Screen -->
   <div id="select-screen" class="screen">
     <h2>Choose Your God</h2>
-    <div class="god-grid" id="god-grid">
-      <!-- God cards inserted by JS -->
+    <div class="select-layout">
+      <div class="god-grid" id="god-grid">
+        <!-- God cards inserted by JS -->
+      </div>
+      <div class="god-info-panel" id="god-info-panel">
+        <div class="info-hint">Hover over a god to see their stats</div>
+      </div>
     </div>
   </div>
 
@@ -834,8 +906,35 @@
       const canvas = card.querySelector('canvas');
       drawGodSprite(canvas, god.name);
       card.addEventListener('click', () => selectGod(i));
+      card.addEventListener('mouseenter', () => showGodInfo(god));
+      card.addEventListener('mouseleave', clearGodInfo);
       grid.appendChild(card);
     });
+  }
+
+  function showGodInfo(god) {
+    const panel = document.getElementById('god-info-panel');
+    const hpPct = Math.round((god.hp / 130) * 100);
+    const dmgPct = Math.round((god.damage / 35) * 100);
+    panel.innerHTML = `
+      <div class="info-name">${god.name}</div>
+      <div class="info-weapon">${god.weapon}</div>
+      <div class="stat-row">
+        <span class="stat-label">HP</span>
+        <div class="stat-bar-bg"><div class="stat-bar-fill" style="width:${hpPct}%;background:#4caf50;"></div></div>
+        <span>${god.hp}</span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-label">ATK</span>
+        <div class="stat-bar-bg"><div class="stat-bar-fill" style="width:${dmgPct}%;background:#f44336;"></div></div>
+        <span>${god.damage}</span>
+      </div>
+    `;
+  }
+
+  function clearGodInfo() {
+    document.getElementById('god-info-panel').innerHTML =
+      '<div class="info-hint">Hover over a god to see their stats</div>';
   }
 
   function selectGod(index) {
