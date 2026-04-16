@@ -260,6 +260,53 @@
     opacity: 0.7;
   }
 
+  /* ---- Animations ---- */
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    20% { transform: translateX(-8px); }
+    40% { transform: translateX(8px); }
+    60% { transform: translateX(-6px); }
+    80% { transform: translateX(6px); }
+  }
+
+  @keyframes flash-white {
+    0% { filter: brightness(1); }
+    50% { filter: brightness(3); }
+    100% { filter: brightness(1); }
+  }
+
+  @keyframes float-up {
+    0% { opacity: 1; transform: translateY(0); }
+    100% { opacity: 0; transform: translateY(-60px); }
+  }
+
+  .shake {
+    animation: shake 0.4s ease;
+  }
+
+  .flash {
+    animation: flash-white 0.3s ease;
+  }
+
+  .damage-number {
+    position: absolute;
+    font-size: 28px;
+    font-weight: bold;
+    pointer-events: none;
+    animation: float-up 1s ease-out forwards;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+  }
+
+  .damage-number.big {
+    color: #ffcc00;
+    font-size: 36px;
+  }
+
+  .damage-number.small {
+    color: #ff6666;
+    font-size: 24px;
+  }
+
   /* ---- End Screen ---- */
   #end-screen {
     background: linear-gradient(180deg, #0f3460 0%, #16213e 100%);
@@ -718,6 +765,36 @@
     });
   }
 
+  // ========== ANIMATION HELPERS ==========
+  function animateShake(element) {
+    element.classList.remove('shake');
+    void element.offsetWidth; // force reflow to restart animation
+    element.classList.add('shake');
+    setTimeout(() => element.classList.remove('shake'), 400);
+  }
+
+  function animateFlash(element) {
+    element.classList.remove('flash');
+    void element.offsetWidth;
+    element.classList.add('flash');
+    setTimeout(() => element.classList.remove('flash'), 300);
+  }
+
+  function showDamageNumber(targetId, dmg, isBig) {
+    const arena = document.querySelector('.battle-arena');
+    const target = document.getElementById(targetId);
+    const rect = target.getBoundingClientRect();
+    const arenaRect = arena.getBoundingClientRect();
+
+    const num = document.createElement('div');
+    num.className = 'damage-number ' + (isBig ? 'big' : 'small');
+    num.textContent = '-' + dmg;
+    num.style.left = (rect.left - arenaRect.left + rect.width / 2 - 20) + 'px';
+    num.style.top = (rect.top - arenaRect.top + 10) + 'px';
+    arena.appendChild(num);
+    setTimeout(() => num.remove(), 1000);
+  }
+
   function handleAnswer(chosen, correctIndex, btn) {
     const buttons = document.querySelectorAll('.answer-btn');
     buttons.forEach(b => b.disabled = true);
@@ -737,11 +814,16 @@
       monsterHp -= dmg;
       document.getElementById('battle-message').textContent =
         `Correct! ${selectedGod.name} attacks with ${selectedGod.weapon} for ${dmg} damage!`;
+      animateShake(document.getElementById('monster-canvas'));
+      animateFlash(document.getElementById('monster-canvas'));
+      showDamageNumber('monster-canvas', dmg, true);
     } else {
       const dmg = Math.floor(selectedGod.damage * 0.3) + Math.floor(Math.random() * 5);
       monsterHp -= dmg;
       document.getElementById('battle-message').textContent =
         `Wrong! ${selectedGod.name} attacks weakly for only ${dmg} damage...`;
+      animateShake(document.getElementById('monster-canvas'));
+      showDamageNumber('monster-canvas', dmg, false);
     }
 
     updateBattleUI();
@@ -761,6 +843,8 @@
     playerHp -= dmg;
     document.getElementById('battle-message').textContent =
       `${monster.name} attacks for ${dmg} damage!`;
+    animateShake(document.getElementById('player-canvas'));
+    showDamageNumber('player-canvas', dmg, false);
     updateBattleUI();
 
     setTimeout(() => {
