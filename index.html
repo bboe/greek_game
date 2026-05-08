@@ -540,56 +540,41 @@
 </div>
 
 <script>
-  // ========== IMAGE OVERRIDES ==========
-  // To use custom images instead of pixel art, place images in an "images/" folder
-  // and set the paths below. Supported formats: .png, .jpg, .gif, .webp
-  // Set a value to null to use the default pixel art.
-  // To use custom images, set the value to a path string or a sprite sheet object:
-  //   'images/zeus.png'                          — single image
-  //   { src: 'images/zeus-sheet.png', frames: 3 } — sprite sheet, uses first frame
-  const IMAGE_OVERRIDES = {
-    gods: {
-      Zeus: 'images/zeus.png',
-      Poseidon: 'images/poseidon.png',
-      Athena: { src: 'images/athena-sheet.png', frames: 3 },
-      Ares: 'images/ares.png',
-    },
-    monsters: {
-      Minotaur: null,
-      Medusa: 'images/medusa.png',
-      Hydra: null,
-      Cyclops: null,
-      Cerberus: null,
-    },
+  // ========== CHARACTER IMAGES ==========
+  const CHARACTER_IMAGES = {
+    Zeus: 'images/zeus.png',
+    Poseidon: 'images/poseidon.png',
+    Athena: 'images/athena.png',
+    Ares: 'images/ares.png',
+    Minotaur: 'images/minotaur.png',
+    Medusa: 'images/medusa.png',
+    Hydra: 'images/hydra.png',
+    Cyclops: 'images/cyclops.png',
+    Cerberus: 'images/cerberus.png',
   };
 
-  // Cache loaded images
   const imageCache = {};
 
   function loadImage(src) {
-    return new Promise((resolve, reject) => {
+    return new Promise(resolve => {
       if (imageCache[src]) { resolve(imageCache[src]); return; }
       const img = new Image();
       img.onload = () => { imageCache[src] = img; resolve(img); };
-      img.onerror = () => resolve(null); // fall back to pixel art on error
+      img.onerror = () => resolve(null);
       img.src = src;
     });
   }
 
-  function drawImageOnCanvas(canvas, img, frames) {
+  async function drawCharacter(canvas, name) {
+    const img = await loadImage(CHARACTER_IMAGES[name]);
+    if (!img) return;
     const ctx = canvas.getContext('2d');
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    // Source region: first frame if sprite sheet, otherwise full image
-    const srcW = frames ? img.width / frames : img.width;
-    const srcH = img.height;
-    // Scale to fit canvas while maintaining aspect ratio
-    const scale = Math.min(canvas.width / srcW, canvas.height / srcH);
-    const w = srcW * scale;
-    const h = srcH * scale;
-    const x = (canvas.width - w) / 2;
-    const y = (canvas.height - h) / 2;
+    const scale = Math.min(canvas.width / img.width, canvas.height / img.height);
+    const w = img.width * scale;
+    const h = img.height * scale;
     ctx.imageSmoothingEnabled = false;
-    ctx.drawImage(img, 0, 0, srcW, srcH, x, y, w, h);
+    ctx.drawImage(img, (canvas.width - w) / 2, (canvas.height - h) / 2, w, h);
   }
 
   // ========== GAME DATA ==========
@@ -676,295 +661,6 @@
     return a;
   }
 
-  // ========== PIXEL ART DRAWING ==========
-  // Each sprite is an array of rows; each character maps to a color.
-  // '.' = transparent, letters map to palette entries per god/monster.
-
-  function drawPixelGrid(ctx, grid, palette, scale) {
-    const rows = grid.length;
-    const cols = grid[0].length;
-    ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-    const offsetX = Math.floor((ctx.canvas.width - cols * scale) / 2);
-    const offsetY = Math.floor((ctx.canvas.height - rows * scale) / 2);
-    for (let r = 0; r < rows; r++) {
-      for (let c = 0; c < cols; c++) {
-        const ch = grid[r][c];
-        if (ch !== '.' && palette[ch]) {
-          ctx.fillStyle = palette[ch];
-          ctx.fillRect(offsetX + c * scale, offsetY + r * scale, scale, scale);
-        }
-      }
-    }
-  }
-
-  const GOD_SPRITES = {
-    Zeus: {
-      grid: [
-        '..........LLL.........',
-        '.........LLLLL........',
-        '........LLLLLL........',
-        '.......YYYYYYY........',
-        '......YYYYYYYY........',
-        '.....YYYYYYYYY........',
-        '.....YYYHHYYY.........',
-        '.....YHHHHHY..........',
-        '......HSEESH..........',
-        '......HSBBSH..........',
-        '......HBNNBH..........',
-        '.......HMMH...........',
-        '......WWWWWW..........',
-        '.....WWWWWWWW.........',
-        '....GWWWWWWWWG........',
-        '....GWWWWWWWWG........',
-        '.LLGGWWWWWWWWGG.......',
-        'LLLLGWWWWWWWWGLL......',
-        '.LL..GWWWWWWG..LL.....',
-        '......WWWWWW..........',
-        '.......WW.WW..........',
-        '......WW...WW.........',
-        '.....WW.....WW........',
-        '.....DD.....DD........',
-      ],
-      palette: {Y:'#f0d060',H:'#f5e0a0',S:'#222',E:'#4488cc',B:'#d4a070',N:'#c08060',M:'#a06040',W:'#e8e8f0',G:'#c9a84c',L:'#ffe040',D:'#8B7355'},
-    },
-    Poseidon: {
-      grid: [
-        '..........T...........',
-        '.........TTT..........',
-        '.........T.T..........',
-        '.........TTT..........',
-        '..........T...........',
-        '.......CCCCCC.........',
-        '......CCCCCCCC........',
-        '.....CCCCCCCCC........',
-        '.....CCCHHHCC.........',
-        '.....CHHHHHHC.........',
-        '......HSEESH..........',
-        '......HSBBSH..........',
-        '......HBNNBH..........',
-        '.......HMMH...........',
-        '......GGGGGG..........',
-        '.....GGGGGGGG.........',
-        '....AGGGGGGGGA........',
-        '....AGGGGGGGGA........',
-        '.TT.AGGGGGGGGATT......',
-        'TTTTAAGGGGGGA.TTT.....',
-        '.TT...GGGGGG..TT.....',
-        '.......GG.GG..........',
-        '......GG...GG.........',
-        '.....DD.....DD........',
-      ],
-      palette: {C:'#4090d0',H:'#f5e0a0',S:'#222',E:'#206090',B:'#c8a070',N:'#b08060',M:'#906040',G:'#3070a0',A:'#60c0f0',T:'#a0d0f0',D:'#5a4030'},
-    },
-    Athena: {
-      grid: [
-        '........PPP...........',
-        '.......PPPPP..........',
-        '......PPPPPPP.........',
-        '......GGGGGGG.........',
-        '.....GGGGGGGGG........',
-        '.....GGGHHHGG.........',
-        '.....GHHHHHHG.........',
-        '......HSEESH..........',
-        '......HSBBSH..........',
-        '......HBNNBH..........',
-        '.......HMMH...........',
-        '......WWWWWW..........',
-        '.....WWWWWWWW.........',
-        '....AWWWWWWWWA........',
-        '....AWWWWWWWWA........',
-        '.SSAAWWWWWWWWAA.......',
-        'SSSSAWWWWWWWWASSS.....',
-        '.SS..AWWWWWWA..SS.....',
-        '.......WWWWW..........',
-        '.......WW.WW..........',
-        '......WW...WW.........',
-        '.....WW.....WW........',
-        '.....DD.....DD........',
-        '....DDD.....DDD.......',
-      ],
-      palette: {P:'#d43030',G:'#c9a84c',H:'#f5e0a0',S:'#a0a0b0',E:'#556677',B:'#d4a070',N:'#c08060',M:'#a06040',A:'#a0a0b0',W:'#e8e8f0',D:'#8B7355'},
-    },
-    Ares: {
-      grid: [
-        '.......RRRR...........',
-        '......RRRRRR..........',
-        '.....RRRRRRRR.........',
-        '.....RRRHHHRRR........',
-        '.....RRHHHHHRR........',
-        '......HSEESH..........',
-        '......HSBBSH..........',
-        '......HBNNBH..........',
-        '.......HMMH...........',
-        '......KKKKKK..........',
-        '.....KKKKKKKK.........',
-        '....RKKKKKKKK.........',
-        '....RKKKKKKKKR........',
-        '..DDRKKKKKKKKKR.......',
-        '.DDDDRKKKKKKKKRR......',
-        '.DDD..RKKKKKKKR.......',
-        '..D....KKKKKK.........',
-        '.......KK.KK..........',
-        '......KK...KK.........',
-        '.....KK.....KK........',
-        '.....DD.....DD........',
-        '....DDD.....DDD.......',
-      ],
-      palette: {R:'#d04040',H:'#f5e0a0',S:'#222',E:'#882020',B:'#d4a070',N:'#c08060',M:'#a06040',K:'#8B0000',D:'#555'},
-    },
-  };
-
-  const MONSTER_SPRITES = {
-    Minotaur: {
-      grid: [
-        '.HH..........HH......',
-        '.HHH........HHH......',
-        '..HHHHHHHHHHHHH.......',
-        '..HHBBBBBBBBHH........',
-        '...BBBBBBBBBB.........',
-        '...BBREBBERBBB........',
-        '...BBBBBBBBBB.........',
-        '....BBNNNNBB..........',
-        '....BBNMMNNB..........',
-        '.....BBBBBB...........',
-        '....TTTTTTTT..........',
-        '...TTTTTTTTTT.........',
-        '..TTTTTTTTTTTT........',
-        '..TTTTTTTTTTTT........',
-        '..TTTTTTTTTTTT........',
-        '...TTTTTTTTTT.........',
-        '....TTTTTTTT..........',
-        '....TT....TT..........',
-        '...TT......TT.........',
-        '..HHH......HHH.......',
-        '..HHH......HHH.......',
-      ],
-      palette: {H:'#6B4226',B:'#C4A24C',E:'#ff2020',R:'#ff4040',N:'#7a6020',M:'#4a3010',T:'#b08050',D:'#8B7355'},
-    },
-    Medusa: {
-      grid: [
-        '..GG..GG..GG..........',
-        '.GGG.GGGG.GGG.........',
-        '.GGGGGGGGGGGGG........',
-        'GGGGGGGGGGGGGGG.......',
-        '.GGGGGHHHHHGGG........',
-        '..GGGHHHHHHHGG........',
-        '..GGHHHHHHHH..........',
-        '...HHSEESEHH..........',
-        '...HHSSBBSHH..........',
-        '....HHBNNBHH..........',
-        '.....HHMHH............',
-        '....DDDDDDDD..........',
-        '...DDDDDDDDDD.........',
-        '...DDDDDDDDDD.........',
-        '...DDDDDDDDDD.........',
-        '....DDDDDDDD..........',
-        '....SSSSSSSS..........',
-        '...SS.SSSS.SS.........',
-        '..SS...SS...SS........',
-        '.SS....SS....SS.......',
-        '.S.....SS.....S.......',
-      ],
-      palette: {G:'#3a8030',H:'#90c070',S:'#222',E:'#ffff00',B:'#70a050',N:'#508038',M:'#406030',D:'#5a9050',},
-    },
-    Hydra: {
-      grid: [
-        '.HH....HH....HH......',
-        '.HHH..HHHH..HHH......',
-        '..HHH.HHHH.HHH.......',
-        '..HREHHRREHHREH.......',
-        '...HHHHHHHHHHHH.......',
-        '....HHHHHHHHHH........',
-        '.....HHHHHHHH.........',
-        '....GGGGGGGGGG........',
-        '...GGGGGGGGGGGG.......',
-        '...GGGGGGGGGGGG.......',
-        '...GGGGGGGGGGGG.......',
-        '....GGGGGGGGGG........',
-        '.....GGGGGGGG.........',
-        '.....GG.GG.GG.........',
-        '....GG..GG..GG........',
-        '...GG...GG...GG.......',
-        '..GG....GG....GG......',
-      ],
-      palette: {H:'#306030',E:'#ff3030',R:'#ff6060',G:'#408040'},
-    },
-    Cyclops: {
-      grid: [
-        '......BBBB............',
-        '.....BBBBBB...........',
-        '....BBBBBBBB..........',
-        '...BBBBBBBBBB.........',
-        '...BBBBBBBBBB.........',
-        '...BBBEEEEBBBB........',
-        '...BBBRRRRBBBB........',
-        '...BBBEEEEBBBB........',
-        '....BBBBBBBBBB........',
-        '.....BBMMMMBB.........',
-        '......BBBBBB..........',
-        '....TTTTTTTTTT........',
-        '...TTTTTTTTTTTT.......',
-        '..TTTTTTTTTTTTTT......',
-        '..TTTTTTTTTTTTTT......',
-        '..TTTTTTTTTTTTTT......',
-        '...TTTTTTTTTTTT.......',
-        '....TT......TT........',
-        '...TT........TT.......',
-        '..BBB........BBB......',
-        '..BBB........BBB......',
-      ],
-      palette: {B:'#c0a080',E:'#f0f0f0',R:'#ff0000',M:'#8a6040',T:'#8B7355'},
-    },
-    Cerberus: {
-      grid: [
-        '.DDD..DDD..DDD........',
-        'DDDDD.DDDD.DDDDD.....',
-        'DDEEDDDEEDDDEEDD......',
-        'DDDDDDDDDDDDDDD......',
-        'DMMDDDDMMDDDDMMD.....',
-        '.DDDDDDDDDDDDDDD.....',
-        '..DDDDDDDDDDDDD......',
-        '....KKKKKKKKK.........',
-        '...KKKKKKKKKKK........',
-        '..KKKKKKKKKKKKK.......',
-        '..KKKKKKKKKKKKK.......',
-        '..KKKKKKKKKKKKK.......',
-        '..KK..KKK..KKK.......',
-        '.KK...KKK...KK.......',
-        '.KK...KKK...KK.......',
-        '.KK...KKK...KK.......',
-        '..........KKKK........',
-        '.........KKKKKK.......',
-      ],
-      palette: {D:'#4a4a4a',E:'#ff3030',M:'#f0f0f0',K:'#2a2a2a'},
-    },
-  };
-
-  async function drawOverride(canvas, override) {
-    const src = typeof override === 'string' ? override : override.src;
-    const frames = typeof override === 'object' ? override.frames : null;
-    const img = await loadImage(src);
-    if (img) { drawImageOnCanvas(canvas, img, frames); return true; }
-    return false;
-  }
-
-  async function drawGodSprite(canvas, godName) {
-    const override = IMAGE_OVERRIDES.gods[godName];
-    if (override && await drawOverride(canvas, override)) return;
-    const sprite = GOD_SPRITES[godName];
-    if (!sprite) return;
-    const ctx = canvas.getContext('2d');
-    drawPixelGrid(ctx, sprite.grid, sprite.palette, 5);
-  }
-
-  async function drawMonsterSprite(canvas, monsterName) {
-    const override = IMAGE_OVERRIDES.monsters[monsterName];
-    if (override && await drawOverride(canvas, override)) return;
-    const sprite = MONSTER_SPRITES[monsterName];
-    if (!sprite) return;
-    const ctx = canvas.getContext('2d');
-    drawPixelGrid(ctx, sprite.grid, sprite.palette, 5);
-  }
 
   // ========== GOD SELECTION ==========
   function buildGodSelection() {
@@ -979,7 +675,7 @@
         <div class="god-weapon">${god.weapon}</div>
       `;
       const canvas = card.querySelector('canvas');
-      drawGodSprite(canvas, god.name);
+      drawCharacter(canvas, god.name);
       card.addEventListener('click', () => selectGod(i));
       card.addEventListener('mouseenter', () => showGodInfo(god));
       card.addEventListener('mouseleave', clearGodInfo);
@@ -1051,8 +747,8 @@
     document.getElementById('monster-hp-text').textContent = `${Math.max(0, monsterHp)} / ${monster.hp}`;
 
     // Draw sprites
-    drawGodSprite(document.getElementById('player-canvas'), selectedGod.name);
-    drawMonsterSprite(document.getElementById('monster-canvas'), monster.name);
+    drawCharacter(document.getElementById('player-canvas'), selectedGod.name);
+    drawCharacter(document.getElementById('monster-canvas'), monster.name);
 
     // Update progress pips
     const bar = document.getElementById('progress-bar');
@@ -1349,6 +1045,28 @@
 
   document.getElementById('restart-btn').addEventListener('click', () => {
     showScreen('title-screen');
+  });
+
+  // ========== CHEAT CODE ==========
+  // Type "EUREKA" during battle to instantly defeat the current monster
+  let cheatBuffer = '';
+  document.addEventListener('keydown', (e) => {
+    if (!document.getElementById('battle-screen').classList.contains('active')) return;
+    if (monsterHp <= 0 || playerHp <= 0) return;
+    cheatBuffer = (cheatBuffer + e.key.toUpperCase()).slice(-6);
+    if (cheatBuffer === 'EUREKA') {
+      cheatBuffer = '';
+      document.querySelectorAll('.answer-btn').forEach(b => b.disabled = true);
+      monsterHp = 0;
+      document.getElementById('battle-message').textContent =
+        `EUREKA! ${selectedGod.name} smites the ${MONSTERS[currentMonsterIndex].name}!`;
+      animateShake(document.getElementById('monster-canvas'));
+      animateFlash(document.getElementById('monster-canvas'));
+      showDamageNumber('monster-canvas', 999, true);
+      sfxCorrect();
+      updateBattleUI();
+      setTimeout(monsterDefeated, 1500);
+    }
   });
 </script>
 
