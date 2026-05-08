@@ -846,8 +846,24 @@
 
   function getAudioCtx() {
     if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtx.state === 'suspended') audioCtx.resume();
     return audioCtx;
   }
+
+  // Mobile browsers require audio to be unlocked by a user gesture.
+  // Play a silent tone on the first tap to unlock the AudioContext.
+  function unlockAudio() {
+    const ctx = getAudioCtx();
+    const buffer = ctx.createBuffer(1, 1, 22050);
+    const source = ctx.createBufferSource();
+    source.buffer = buffer;
+    source.connect(ctx.destination);
+    source.start(0);
+    document.removeEventListener('touchstart', unlockAudio);
+    document.removeEventListener('click', unlockAudio);
+  }
+  document.addEventListener('touchstart', unlockAudio, { once: true });
+  document.addEventListener('click', unlockAudio, { once: true });
 
   function playTone(freq, duration, type = 'square', volume = 0.15) {
     try {
