@@ -91,6 +91,61 @@
     }
   }
 
+  .btn.secondary {
+    background: transparent;
+    color: #c9a84c;
+    border: 2px solid #c9a84c;
+    padding: 10px 28px;
+    font-size: 18px;
+    margin-top: 12px;
+  }
+
+  @media (hover: hover) {
+    .btn.secondary:hover {
+      background: rgba(201, 168, 76, 0.15);
+    }
+  }
+
+  /* ---- Tutorial Screen ---- */
+  #tutorial-screen {
+    background: linear-gradient(180deg, #0f3460 0%, #16213e 100%);
+    padding: 32px 48px;
+    justify-content: flex-start;
+  }
+
+  #tutorial-screen h2 {
+    font-size: 32px;
+    color: #c9a84c;
+    margin-bottom: 20px;
+  }
+
+  .tutorial-list {
+    text-align: left;
+    font-size: 17px;
+    line-height: 1.7;
+    max-width: 640px;
+    margin-bottom: 16px;
+  }
+
+  .tutorial-list li {
+    margin-bottom: 8px;
+    list-style: none;
+    padding-left: 28px;
+    position: relative;
+  }
+
+  .tutorial-list li::before {
+    content: '\2694';
+    position: absolute;
+    left: 0;
+    color: #c9a84c;
+  }
+
+  .tutorial-list .label {
+    color: #c9a84c;
+    font-weight: bold;
+  }
+
   .btn:active {
     transform: scale(0.97);
   }
@@ -497,6 +552,20 @@
     <p class="subtitle">An Ancient Greece Quiz Battle</p>
     <p class="subtitle">A Game by Daniel Boe &copy; 2026</p>
     <button class="btn" id="start-btn">Start Game</button>
+    <button class="btn secondary" id="tutorial-btn">How to Play</button>
+  </div>
+
+  <!-- Tutorial Screen -->
+  <div id="tutorial-screen" class="screen">
+    <h2>How to Play</h2>
+    <ul class="tutorial-list">
+      <li><span class="label">Pick a god</span> &mdash; Zeus, Poseidon, Athena, or Ares. Each has different HP and attack power.</li>
+      <li><span class="label">Answer trivia</span> about Ancient Greece to attack monsters.</li>
+      <li><span class="label">Right answer</span> &rarr; full-power attack with your god's weapon.</li>
+      <li><span class="label">Wrong answer</span> &rarr; weak attack &hellip; and the monster hits back hard!</li>
+      <li><span class="label">Defeat a monster</span> and you recover some HP. Beat all 5 to save Ancient Greece!</li>
+    </ul>
+    <button class="btn" id="tutorial-back-btn">Back</button>
   </div>
 
   <!-- God Selection Screen -->
@@ -1132,6 +1201,14 @@
   });
 
   document.getElementById('restart-btn').addEventListener('click', () => {
+    showScreen('title-screen');
+  });
+
+  document.getElementById('tutorial-btn').addEventListener('click', () => {
+    showScreen('tutorial-screen');
+  });
+
+  document.getElementById('tutorial-back-btn').addEventListener('click', () => {
     showScreen('title-screen');
   });
 
